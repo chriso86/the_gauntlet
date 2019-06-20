@@ -94,6 +94,8 @@ class ConnectivityMonitorState extends State<ConnectivityMonitor> {
             } else {
               isConnected = false;
             }
+
+            print('Status set to $result');
           });
         });
   }

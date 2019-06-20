@@ -6,11 +6,17 @@ class Gateway {
     return http.get('https://opentdb.com/api_category.php');
   }
 
-  Future<http.Response> getQuestions(int amount, int category) async {
-    var url = 'https://opentdb.com/api_count.php?amount=' +
-        amount.toString() +
-        '&category=' +
-        category.toString();
+  Future<http.Response> getQuestions(
+      String amount, int category, String difficulty) async {
+    var url = 'https://opentdb.com/api.php?amount=' + amount;
+
+    if (category != null) {
+      url += '&category=' + category.toString();
+    }
+
+    if (difficulty != null) {
+      url += '&difficulty=' + difficulty.toLowerCase();
+    }
 
     return await http.get(url);
   }

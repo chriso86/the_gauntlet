@@ -6,19 +6,6 @@ class Loader extends StatefulWidget {
 }
 
 class _LoaderState extends State<Loader> {
-  int loaderCount = 0;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override void dispose() {
-    loaderCount = 0;
-
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
