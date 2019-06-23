@@ -4,6 +4,7 @@ import 'package:the_gauntlet/server_configuration.dart';
 import 'category.dart';
 import 'connectivity_monitor.dart';
 import 'difficuly_level.dart';
+import 'document_storage.dart';
 import 'gateway.dart';
 import 'loader.dart';
 
@@ -13,26 +14,72 @@ class ServerOptions extends StatefulWidget {
 }
 
 class _ServerOptionsState extends State<ServerOptions> {
+  // Persistent
   final gateway = new Gateway();
-  ServerConfiguration configuration = new ServerConfiguration('', '', '');
+  final documentStorage = new DocumentStorage();
+
+  // Defaults
+  static String _defaultDifficulty = 'Medium';
+  static String _defaultName = 'The Great Battle';
+  static String _defaultAmount = '10';
+
+  // Output
+  ServerConfiguration configuration;
+
+  // Lists
   List<Category> categories;
   List<DifficultyLevel> difficultyLevels = [
     new DifficultyLevel(1, 'Easy'),
     new DifficultyLevel(2, 'Medium'),
     new DifficultyLevel(3, 'Hard'),
   ];
+  List<Widget> playersList = List<Widget>();
+
+  // Form bindings
+  int _category;
+  String _difficultyLevel = _defaultDifficulty;
+  TextEditingController _nameController =
+      new TextEditingController(text: _defaultName);
+  TextEditingController _amountController =
+      new TextEditingController(text: _defaultAmount);
+
+  // State
+  bool _loading = true;
 
   @override
   void initState() {
+    playersList.add(
+      Row(
+        children: <Widget>[
+          Text('')
+        ],
+      )
+    );
+
     setState(() {
       gateway.fetchCategories().then((response) {
         var parsedCategories = json.decode(response.body)['trivia_categories'];
+
+        // Register name and amount listeners
+        _nameController.addListener(setNameOnConfiguration);
+        _amountController.addListener(setAmountOnConfiguration);
 
         setState(() {
           categories = parsedCategories
               .map<Category>(
                   (category) => new Category(category['id'], category['name']))
               .toList();
+
+          var defaultCategory = categories[0].id;
+
+          _category = defaultCategory;
+
+          // Set up initial state of configuration object
+          configuration = new ServerConfiguration(_defaultName, defaultCategory,
+              _defaultDifficulty, _defaultAmount);
+
+          // Stop loading
+          _loading = false;
         });
       });
     });
@@ -40,13 +87,21 @@ class _ServerOptionsState extends State<ServerOptions> {
     super.initState();
   }
 
-  void createServer() {
-    print(configuration.category);
-    print(configuration.questionCount);
-    print(configuration.difficultyLevel);
-    print(configuration.name);
+  void setNameOnConfiguration() {
+    configuration.name = _nameController.text;
+  }
 
-    // gateway.getQuestions(configuration.questionCount, configuration.category);
+  void setAmountOnConfiguration() {
+    configuration.questionCount = _amountController.text;
+  }
+
+  void createServer() {
+    gateway
+        .getQuestions(configuration.questionCount, configuration.category,
+            configuration.difficultyLevel)
+        .then((response) {
+      var parsedQuestions = json.decode(response.body)['results'];
+    });
   }
 
   @override
@@ -61,57 +116,85 @@ class _ServerOptionsState extends State<ServerOptions> {
               children: <Widget>[
                 ListTile(
                   leading: Icon(Icons.label),
-                  title: TextField(
+                  title: TextFormField(
                     decoration: InputDecoration(
-                      hintText: 'Name of your game',
+                      hintText: 'E.g. The Pit of Sorrow',
                     ),
-                    onChanged: (name) {
-                      configuration.name = name;
-                    },
+                    controller: _nameController,
                   ),
+                  subtitle: Text('Name of your game'),
                 ),
                 ListTile(
                   leading: Icon(Icons.category),
                   title: DropdownButton(
-                      items: categories?.map((Category category) {
-                            return new DropdownMenuItem<Category>(
-                                value: category,
-                                child: new Text(category.name));
-                          })?.toList() ??
-                          [],
-                      onChanged: (category) {
-                        configuration.category = category.toString();
-                      },
-                      hint: Text('Choose a category')),
+                    items: categories?.map((Category category) {
+                          return new DropdownMenuItem<int>(
+                              value: category.id,
+                              child: new Text(category.name));
+                        })?.toList() ??
+                        [],
+                    onChanged: (category) {
+                      setState(() {
+                        _category = category;
+
+                        configuration.category = category;
+                      });
+                    },
+                    isExpanded: true,
+                    value: _category,
+                    hint: Text('E.g. Science: Computers'),
+                  ),
+                  subtitle: Text('Choose a category'),
                 ),
                 ListTile(
                   leading: Icon(Icons.settings),
                   title: DropdownButton(
                       items: difficultyLevels?.map((DifficultyLevel level) {
-                            return new DropdownMenuItem<int>(
-                                value: level.id, child: new Text(level.name));
+                            return new DropdownMenuItem<String>(
+                                value: level.name, child: new Text(level.name));
                           })?.toList() ??
                           [],
                       onChanged: (difficultyLevel) {
                         setState(() {
-                          configuration.difficultyLevel = difficultyLevel.toString();
+                          _difficultyLevel = difficultyLevel;
+
+                          configuration.difficultyLevel = difficultyLevel;
                         });
                       },
-                      value: difficultyLevels[0].id,
-                      hint: Text('Choose your difficulty')),
+                      isExpanded: true,
+                      value: _difficultyLevel,
+                      hint: Text('E.g. Medium')),
+                  subtitle: Text('Choose your difficulty'),
                 ),
                 ListTile(
-                  leading: Icon(Icons.label),
-                  title: TextField(
+                  leading: Icon(Icons.view_list),
+                  title: TextFormField(
                     keyboardType: TextInputType.numberWithOptions(),
                     decoration: InputDecoration(
-                      hintText: 'How many questions?',
+                      hintText: 'E.g. 20',
                     ),
-                    onChanged: (questionCount) {
-                      configuration.questionCount = questionCount;
-                    },
+                    controller: _amountController,
                   ),
+                  subtitle: Text('Number of questions'),
                 ),
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  margin: const EdgeInsets.only(top: 10.0),
+                  padding: const EdgeInsets.all(10.0),
+                  decoration: new BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(color: Colors.grey, width: 1.0))),
+                  child: new Text('Players',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16.0,
+                      )),
+                ),
+
+                Column(
+                  children: playersList,
+                )
+
               ],
             ),
             floatingActionButton: FloatingActionButton(
@@ -124,7 +207,10 @@ class _ServerOptionsState extends State<ServerOptions> {
         ConnectivityMonitor(),
 
         // Loader
-        // Loader()
+        Visibility(
+          visible: _loading,
+          child: Loader(),
+        )
       ],
     );
   }

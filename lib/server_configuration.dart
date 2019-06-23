@@ -1,8 +1,8 @@
 class ServerConfiguration {
   String name;
-  String category;
+  int category;
   String difficultyLevel;
   String questionCount;
 
-  ServerConfiguration(this.name, this.category, this.difficultyLevel);
+  ServerConfiguration(this.name, this.category, this.difficultyLevel, this.questionCount);
 }
