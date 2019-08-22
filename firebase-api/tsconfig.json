@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "outDir": "lib",
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "types": [
+      "@types/express"
+    ]
+  },
+  "compileOnSave": true,
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ]
+}
