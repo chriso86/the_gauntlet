@@ -5,29 +5,32 @@ import 'document_storage.dart';
 class UserProfile extends InheritedWidget {
   final documentStorage = new DocumentStorage();
 
-  String _playerName = 'Wanderer';
+  String playerName = 'Wanderer';
 
-  UserProfile({
-    Key key,
-    @required Widget child
-  }): super(key: key, child: child);
+  UserProfile({Key key, @required Widget child})
+      : super(key: key, child: child);
 
-  static UserProfile of (BuildContext context) {
+  static UserProfile of(BuildContext context) {
     return context.inheritFromWidgetOfExactType(UserProfile);
   }
 
-  set playerName(String name) {
-    _playerName = name;
+  void setPlayerName(String name) {
+    playerName = name;
 
     documentStorage.setPlayerName(name);
 
-    print('Player name set to $name');
+    print('Player name set to $playerName');
   }
 
-  get playerName {
-    return _playerName;
+  String getPlayerName() {
+    documentStorage.getPlayerName()
+        .then((String name) {
+      playerName = name;
+
+      return playerName;
+    });
   }
 
-  @override bool updateShouldNotify(UserProfile oldWidget) =>
-    false;
+  @override
+  bool updateShouldNotify(UserProfile oldWidget) => true;
 }

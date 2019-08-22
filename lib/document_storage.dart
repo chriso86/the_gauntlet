@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 class DocumentStorage {
-  String playerKey = 'PlayerName';
+  String playerKey = 'Wanderer';
 
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();

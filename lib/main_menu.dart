@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:the_gauntlet/server_options.dart';
 import 'package:the_gauntlet/user_profile.dart';
 import 'connectivity_monitor.dart';
-import 'document_storage.dart';
 
 class MainMenu extends StatefulWidget {
   @override
@@ -10,21 +9,19 @@ class MainMenu extends StatefulWidget {
 }
 
 class _MainMenuState extends State<MainMenu> {
-  final documentStorage = new DocumentStorage();
-
   // State
   bool _editingName = false;
+  String _playerName = '';
 
   @override
   Widget build(BuildContext context) {
-    String _playerName = UserProfile.of(context).playerName;
     TextEditingController _playerNameController = new TextEditingController();
+    _playerName = UserProfile.of(context).playerName;
 
     return Stack(children: <Widget>[
       // Main Menu Content
       Scaffold(
           appBar: AppBar(
-
             backgroundColor: Colors.black,
             leading: Icon(Icons.person, size: 26.0),
             title: Text(_playerName,
