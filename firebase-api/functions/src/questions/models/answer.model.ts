@@ -2,7 +2,7 @@ export class AnswerModel {
     userId: string;
     questionId: string;
     answer: string;
-    correct: boolean;
+    correct: boolean = false;
 
     constructor(userId: string, questionId: string, answer: string) {
         this.userId = userId;

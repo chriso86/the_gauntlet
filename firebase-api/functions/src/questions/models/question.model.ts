@@ -6,12 +6,12 @@ import {DifficultyEnum} from "../enums/difficulty.enum";
 
 export class QuestionModel implements IAuditable {
     // QuestionModel properties
-    _id: string;
+    _id: string = '';
     categoryId: string;
     question: string;
     difficulty: DifficultyEnum = DifficultyEnum.Easy;
     possibleAnswers: string[] = [];
-    correctAnswer: string;
+    correctAnswer: string = '';
 
     // ApprovalModel
     approval: ApprovalModel = new ApprovalModel();

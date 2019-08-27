@@ -1,9 +1,10 @@
 import { CollectionReference } from "@google-cloud/firestore";
-import {db} from "../db";
 import {LogEventModel} from "../models/log-event.model";
+import * as admin from "firebase-admin";
 
 export class LoggerGateway {
-    private _collection: CollectionReference = db.collection('log');
+    private _db = admin.firestore();
+    private _collection: CollectionReference = this._db.collection('log');
 
     logEvent(logEvent: LogEventModel) {
         this._collection.add(logEvent);

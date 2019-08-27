@@ -1,5 +1,4 @@
 import {QuestionModel} from "../models/question.model";
-import {db} from "../../global/db";
 import {
     DocumentReference,
     CollectionReference,
@@ -9,9 +8,11 @@ import {
     WriteResult
 } from "@google-cloud/firestore";
 import {DifficultyEnum} from "../enums/difficulty.enum";
+import * as admin from "firebase-admin";
 
 export class QuestionsGateway {
-    private _collection: CollectionReference = db.collection('questions');
+    private _db = admin.firestore();
+    private _collection: CollectionReference = this._db.collection('questions');
 
     // READ
     getDocumentReference(id: string) {
@@ -50,6 +51,10 @@ export class QuestionsGateway {
                 return questions.map((doc: DocumentSnapshot) => {
                     const question = doc.data();
 
+                    if (!question) {
+                        return new QuestionModel('NA', '', 'NA');
+                    }
+
                     return new QuestionModel(doc.id, question.question, question.possibleAnswers);
                 });
             })
@@ -83,7 +88,9 @@ export class QuestionsGateway {
             throw new Error('There was no \'question\' object passed in to add to the database');
         }
 
+        const jsonifiedQuestion = JSON.parse(JSON.stringify(question));
+
         return documentReference
-            .set(question);
+            .set(jsonifiedQuestion);
     }
 }

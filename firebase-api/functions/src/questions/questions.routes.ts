@@ -4,10 +4,9 @@ import {QuestionModel} from "./models/question.model";
 import {Request, Response} from "express-serve-static-core";
 import {JsonResponse} from "../global/models/json-response.model";
 import {AnswerModel} from "./models/answer.model";
-import {DifficultyEnum} from "./enums/difficulty.enum";
 
-var router = express.Router();
-var questionsGateway = new QuestionsGateway();
+export const router = express.Router();
+const questionsGateway = new QuestionsGateway();
 // var usersGateway = new Gate
 
 // Get all questions (Just in case the query params don't work: :questionId/:pageSize/:pageNo)
@@ -20,7 +19,7 @@ router.get('/', (request: Request, response: Response) => {
         // Return single question
         if (questionId) {
             questionsGateway.getSpecificQuestion(questionId)
-                .then((question: QuestionModel) => {
+                .then((question: QuestionModel | void) => {
                     response.send(
                         new JsonResponse(question)
                     );
@@ -33,7 +32,7 @@ router.get('/', (request: Request, response: Response) => {
         const startItemNo = (pageNo * pageSize) - (pageSize + 1);
 
         questionsGateway.getQuestions(categoryId, difficulty, startItemNo, pageSize)
-            .then((questions: QuestionModel[]) => {
+            .then((questions: QuestionModel[] | void) => {
                 response.send(
                     new JsonResponse(questions)
                 );
@@ -70,7 +69,7 @@ router.post('/checkAnswers', (request: Request, response: Response) => {
 });
 
 router.post('/', (request: Request, response: Response) => {
-    try {
+    // try {
         const question = request.body.question;
         const categoryId = request.body.categoryId;
         const difficulty = request.body.difficulty;
@@ -78,17 +77,25 @@ router.post('/', (request: Request, response: Response) => {
         const mappedQuestion = new QuestionModel(newDocumentSpace.id, question, categoryId, difficulty);
         const possibleAnswers = request.body.possibleAnswers;
 
+        response.send(newDocumentSpace);
+
         if (newDocumentSpace && mappedQuestion) {
-            question.setPossibleAnswers(possibleAnswers);
+            mappedQuestion.setPossibleAnswers(possibleAnswers);
 
             QuestionsGateway.setQuestion(newDocumentSpace, mappedQuestion)
-                .then(() => response.send(
-                    new JsonResponse(question)
-                ));
+                .then(() => {
+                    response.send(
+                        new JsonResponse(question)
+                    );
+                });
         }
-    } catch (e) {
-        response.send(
-            new JsonResponse(e)
-        );
-    }
+    // } catch (e) {
+    //     response.send(e);
+    //
+    //     response.send(
+    //         new JsonResponse(e)
+    //     );
+    // }
 });
+
+// module.exports = router;

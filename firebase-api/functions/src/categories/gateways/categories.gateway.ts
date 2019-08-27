@@ -1,5 +1,4 @@
 import {CategoryModel} from "../models/category.model";
-import {db} from "../../global/db";
 import {
     DocumentReference,
     CollectionReference,
@@ -8,9 +7,11 @@ import {
     DocumentSnapshot,
     WriteResult
 } from "@google-cloud/firestore";
+import * as admin from "firebase-admin";
 
 export class CategoriesGateway {
-    private _collection: CollectionReference = db.collection('categories');
+    private _db = admin.firestore();
+    private _collection: CollectionReference = this._db.collection('categories');
 
     // READ
     getDocumentReference(id: string) {
@@ -46,8 +47,10 @@ export class CategoriesGateway {
             .then((categories: DocumentSnapshot[]) => {
                 return categories.map((doc: DocumentSnapshot) => {
                     const category = doc.data();
+                    const name = category && category.name;
+                    const description = category && category.description;
 
-                    return new CategoryModel(doc.id, category.name, category.description);
+                    return new CategoryModel(doc.id, name, description);
                 });
             })
     }
