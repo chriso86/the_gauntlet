@@ -1,29 +1,20 @@
 import {IAuditable} from "../../global/interfaces/auditable.interface";
 import {ApprovalModel} from "../../global/models/approval.model";
 import {UserModel} from "../../users/models/user.model";
-import {LoggerService} from "../../global/services/logger.service";
 import {DifficultyEnum} from "../enums/difficulty.enum";
 
 export class QuestionModel implements IAuditable {
-    // QuestionModel properties
     _id: string = '';
     categoryId: string;
     question: string;
     difficulty: DifficultyEnum = DifficultyEnum.Easy;
     possibleAnswers: string[] = [];
     correctAnswer: string = '';
-
-    // ApprovalModel
     approval: ApprovalModel = new ApprovalModel();
-
-    // Auditable
     createdBy: string = '';
     createdOn: Date = new Date();
     updatedBy: string = '';
     updatedOn: Date = new Date();
-
-    private _loggerService: LoggerService = new LoggerService();
-
 
     constructor(
         id: string,
@@ -31,7 +22,12 @@ export class QuestionModel implements IAuditable {
         categoryId: string,
         difficulty: DifficultyEnum = DifficultyEnum.Easy,
         possibleAnswers: string[] = [],
-        correctAnswer: string = ''
+        correctAnswer: string = '',
+        approval: ApprovalModel = new ApprovalModel(),
+        createdOn: Date = new Date(),
+        createdBy: string = 'System',
+        updatedOn: Date = new Date(),
+        updatedBy: string = ''
     ) {
         if (!question) {
             throw new Error('No question was provided, you can\'t create a question without a question!');
@@ -42,9 +38,15 @@ export class QuestionModel implements IAuditable {
         }
 
         // New QuestionModel
+        this._id = id;
         this.question = question;
         this.categoryId = categoryId;
         this.difficulty = difficulty;
+        this.approval = approval;
+        this.createdOn = createdOn;
+        this.createdBy = createdBy;
+        this.updatedOn = updatedOn;
+        this.updatedBy = updatedBy;
 
         if (possibleAnswers.length) {
             this.setPossibleAnswers(possibleAnswers);
@@ -81,6 +83,10 @@ export class QuestionModel implements IAuditable {
     setCorrectAnswer(answer: string) {
         if (!answer) {
             throw new Error('No answer was provided as a correct answer');
+        }
+
+        if (this.possibleAnswers.indexOf(answer) < 0) {
+            throw new Error('The correct answer does not exist as a possible answer');
         }
 
         this.correctAnswer = answer;
@@ -135,14 +141,10 @@ export class QuestionModel implements IAuditable {
     modifyCreated(createdBy: string) {
         this.createdBy = createdBy || 'System';
         this.createdOn = new Date();
-
-        this._loggerService.logEvent('Created QuestionModel', this.createdBy);
     }
 
     modifyUpdated(updatedBy: string) {
         this.updatedBy = updatedBy || 'System';
         this.updatedOn = new Date();
-
-        this._loggerService.logEvent('Created QuestionModel', this.updatedBy);
     }
 }

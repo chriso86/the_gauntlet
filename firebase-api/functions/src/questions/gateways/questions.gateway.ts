@@ -1,31 +1,41 @@
 import {QuestionModel} from "../models/question.model";
 import {
     DocumentReference,
-    CollectionReference,
+    DocumentSnapshot,
     QueryDocumentSnapshot,
     QuerySnapshot,
-    DocumentSnapshot,
     WriteResult
 } from "@google-cloud/firestore";
 import {DifficultyEnum} from "../enums/difficulty.enum";
-import * as admin from "firebase-admin";
+import {BaseGateway} from "../../global/gateways/base.gateway";
+import {parseJsonModel} from "../../global/helpers/json-parser";
 
-export class QuestionsGateway {
-    private _db = admin.firestore();
-    private _collection: CollectionReference = this._db.collection('questions');
+export class QuestionsGateway extends BaseGateway {
+    constructor() {
+        super();
+
+        this._collection = this._db.collection('question');
+    }
 
     // READ
-    getDocumentReference(id: string) {
-        return this._collection.doc(id);
-    }
+    getQuestions(
+        categoryIds: string[],
+        difficulty: DifficultyEnum,
+        startItemNo: number = 1,
+        pageSize: number = 10
+    ): Promise<QuestionModel[]> {
+        let query = null;
 
-    getNewDocumentReference(): DocumentReference {
-        return this._collection.doc();
-    }
+        if (!categoryIds || !categoryIds.length) {
+            throw new Error('You cannot fetch questions without specifying at least one category ID');
+        }
 
-    getQuestions(categoryId: string, difficulty: DifficultyEnum, startItemNo: number = 1, pageSize: number = 10): Promise<void | QuestionModel[]> {
-        return this._collection
-            .where('categoryId', '==', categoryId)
+        categoryIds.forEach(categoryId => {
+            query = this._collection
+                .where('categoryId', '==', categoryId);
+        });
+
+        return (query || this._collection)
             .where('difficulty', '==', difficulty)
             .orderBy('_id')
             .startAt(startItemNo)
@@ -36,7 +46,19 @@ export class QuestionsGateway {
                 return questions.docs.map((doc: QueryDocumentSnapshot) => {
                     const question = doc.data();
 
-                    return new QuestionModel(doc.id, question.question, question.possibleAnswers);
+                    return new QuestionModel(
+                        question._id,
+                        question.question,
+                        question.categoryId,
+                        question.difficulty,
+                        question.possibleAnswers,
+                        question.correctAnswer,
+                        question.approval,
+                        question.createdOn,
+                        question.createdBy,
+                        question.updatedOn,
+                        question.updatedBy
+                    );
                 });
             });
     }
@@ -55,25 +77,46 @@ export class QuestionsGateway {
                         return new QuestionModel('NA', '', 'NA');
                     }
 
-                    return new QuestionModel(doc.id, question.question, question.possibleAnswers);
+                    return new QuestionModel(
+                        question._id,
+                        question.question,
+                        question.categoryId,
+                        question.difficulty,
+                        question.possibleAnswers,
+                        question.correctAnswer,
+                        question.approval,
+                        question.createdOn,
+                        question.createdBy,
+                        question.updatedOn,
+                        question.updatedBy
+                    );
                 });
             })
     }
 
-    getSpecificQuestion(id: string): Promise<void | QuestionModel> {
+    getSpecificQuestion(id: string): Promise<QuestionModel> {
         return this._collection
             .where('_id', '==', id)
             .get()
-            .then((question: QuerySnapshot) => {
-                if (!question || !question.size) {
+            .then((snapshot: QuerySnapshot) => {
+                if (!snapshot || !snapshot.size) {
                     throw new Error('Could not find question with ID: ' + id);
                 }
 
-                const doc = question.docs[0].data();
+                const question = snapshot.docs[0].data();
+
                 return new QuestionModel(
-                    question.docs[0].id,
-                    doc.question,
-                    doc.possibleAnswers
+                    question._id,
+                    question.question,
+                    question.categoryId,
+                    question.difficulty,
+                    question.possibleAnswers,
+                    question.correctAnswer,
+                    question.approval,
+                    question.createdOn,
+                    question.createdBy,
+                    question.updatedOn,
+                    question.updatedBy
                 );
             });
     }
@@ -88,7 +131,9 @@ export class QuestionsGateway {
             throw new Error('There was no \'question\' object passed in to add to the database');
         }
 
-        const jsonifiedQuestion = JSON.parse(JSON.stringify(question));
+        question._id = documentReference.id;
+
+        const jsonifiedQuestion = parseJsonModel(question);
 
         return documentReference
             .set(jsonifiedQuestion);

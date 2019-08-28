@@ -1,10 +1,7 @@
 import {UserModel} from "../../users/models/user.model";
-import {LoggerService} from "../services/logger.service";
 import {UserTypeEnum} from "../../users/enums/user-type.enum";
 
 export class ApprovalModel {
-    private _loggerService: LoggerService = new LoggerService();
-
     requestedOn: Date;
     requestedBy: string;
     approvedOn: Date;
@@ -28,8 +25,6 @@ export class ApprovalModel {
     request(user: UserModel) {
         this.requestedBy = user._id || 'NODATA';
         this.requestedOn = new Date();
-
-        this._loggerService.logEvent('ApprovalModel Request', user._id);
     }
 
     approve(user: UserModel) {
@@ -44,7 +39,5 @@ export class ApprovalModel {
         this.approved = true;
         this.approvedBy = user._id || 'NODATA';
         this.approvedOn = new Date();
-
-        this._loggerService.logEvent('ApprovalModel Granted', user._id);
     }
 }

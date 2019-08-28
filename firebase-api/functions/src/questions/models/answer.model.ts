@@ -1,6 +1,7 @@
 export class AnswerModel {
     userId: string;
     questionId: string;
+    questionName: string = '';
     answer: string;
     correct: boolean = false;
 

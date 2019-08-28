@@ -1,28 +1,21 @@
 import {CategoryModel} from "../models/category.model";
 import {
     DocumentReference,
-    CollectionReference,
     QueryDocumentSnapshot,
     QuerySnapshot,
-    DocumentSnapshot,
     WriteResult
 } from "@google-cloud/firestore";
-import * as admin from "firebase-admin";
+import {BaseGateway} from "../../global/gateways/base.gateway";
 
-export class CategoriesGateway {
-    private _db = admin.firestore();
-    private _collection: CollectionReference = this._db.collection('categories');
+export class CategoriesGateway extends BaseGateway {
+    constructor() {
+        super();
+
+        this._collection = this._db.collection('category');
+    }
 
     // READ
-    getDocumentReference(id: string) {
-        return this._collection.doc(id);
-    }
-
-    getNewDocumentReference(): DocumentReference {
-        return this._collection.doc();
-    }
-
-    getCategories(startItemNo: number = 1, pageSize: number = 10): Promise<void | CategoryModel[]> {
+    getCategories(startItemNo: number = 1, pageSize: number = 10): Promise<CategoryModel[]> {
         return this._collection
             .orderBy('name')
             .startAt(startItemNo)
@@ -33,42 +26,26 @@ export class CategoriesGateway {
                 return categories.docs.map((doc: QueryDocumentSnapshot) => {
                     const category = doc.data();
 
-                    return new CategoryModel(doc.id, category.name, category.description);
+                    return new CategoryModel(category._id, category.name, category.description);
                 });
             });
     }
 
-    getMultipleCategoriesById(documentReferences: DocumentReference[]) {
-        if (!documentReferences || !documentReferences.length) {
-            throw new Error('No document references were provided, and therefore no documents can be found');
-        }
-
-        return this._collection.firestore.getAll(...documentReferences)
-            .then((categories: DocumentSnapshot[]) => {
-                return categories.map((doc: DocumentSnapshot) => {
-                    const category = doc.data();
-                    const name = category && category.name;
-                    const description = category && category.description;
-
-                    return new CategoryModel(doc.id, name, description);
-                });
-            })
-    }
-
-    getSpecificCategory(id: string): Promise<void | CategoryModel> {
+    getSpecificCategory(id: string): Promise<CategoryModel> {
         return this._collection
             .where('_id', '==', id)
             .get()
-            .then((category: QuerySnapshot) => {
-                if (!category || !category.size) {
+            .then((snapshot: QuerySnapshot) => {
+                if (!snapshot || !snapshot.size) {
                     throw new Error('Could not find category with ID: ' + id);
                 }
 
-                const doc = category.docs[0].data();
+                const question = snapshot.docs[0].data();
+
                 return new CategoryModel(
-                    category.docs[0].id,
-                    doc.name,
-                    doc.description
+                    question._id,
+                    question.name,
+                    question.description
                 );
             });
     }

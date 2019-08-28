@@ -1,20 +1,24 @@
 import * as express from 'express';
 import {QuestionsGateway} from "./gateways/questions.gateway";
 import {QuestionModel} from "./models/question.model";
-import {Request, Response} from "express-serve-static-core";
 import {JsonResponse} from "../global/models/json-response.model";
-import {AnswerModel} from "./models/answer.model";
+import {Request, Response} from "firebase-functions";
 
 export const router = express.Router();
-const questionsGateway = new QuestionsGateway();
-// var usersGateway = new Gate
+const questionsGateway: QuestionsGateway = new QuestionsGateway();
 
-// Get all questions (Just in case the query params don't work: :questionId/:pageSize/:pageNo)
-router.get('/', (request: Request, response: Response) => {
+/**
+ * Get a single question or a list of questions
+ *
+ * @param(optional) {string} questionId               The ID of the question to retrieve
+ * @param(optional) {string[]} categoryIds            The category IDs of the questions that you want to retrieve
+ * @param(optional) {string} difficulty               The difficulty of the questions that you want to retrieve
+ */
+router.post('/GetQuestions', (request: Request, response: Response) => {
     try {
-        const questionId = request.params.questionId;
-        const categoryId = request.params.categoryId;
-        const difficulty = parseInt(request.params.difficulty);
+        const questionId = request.body.questionId;
+        const categoryIds = request.body.categoryIds;
+        const difficulty = parseInt(request.body.difficulty);
 
         // Return single question
         if (questionId) {
@@ -27,11 +31,11 @@ router.get('/', (request: Request, response: Response) => {
         }
 
         // Return multiple questions
-        const pageSize: number = parseInt(request.params.pageSize);
-        const pageNo: number = parseInt(request.params.pageNo);
+        const pageSize: number = parseInt(request.body.pageSize);
+        const pageNo: number = parseInt(request.body.pageNo);
         const startItemNo = (pageNo * pageSize) - (pageSize + 1);
 
-        questionsGateway.getQuestions(categoryId, difficulty, startItemNo, pageSize)
+        questionsGateway.getQuestions(categoryIds, difficulty, startItemNo, pageSize)
             .then((questions: QuestionModel[] | void) => {
                 response.send(
                     new JsonResponse(questions)
@@ -44,58 +48,42 @@ router.get('/', (request: Request, response: Response) => {
     }
 });
 
-router.post('/checkAnswers', (request: Request, response: Response) => {
-    const answers: AnswerModel[] = request.body.answers;
-    const questionsDocs = answers.map((answer: AnswerModel) => {
-        return questionsGateway.getDocumentReference(answer.questionId);
-    });
-
-    questionsGateway.getMultipleQuestionsById(questionsDocs)
-        .then((questions: QuestionModel[]) => {
-            if (answers && answers.length) {
-                answers.forEach((answer: AnswerModel) => {
-                    const filteredQuestions = questions.filter((question: QuestionModel) => {
-                        return question._id === answer.questionId;
-                    });
-
-                    answer.correct = filteredQuestions[0].isCorrectAnswer(answer.answer);
-                })
-            }
-        });
-
-    response.send(
-        new JsonResponse(answers)
-    );
-});
-
-router.post('/', (request: Request, response: Response) => {
-    // try {
+/**
+ * Add a new question to the DB for Quizzes
+ *
+ * @param {string} question                The question itself
+ * @param {string} categoryId              The category ID of the new question
+ * @param {string} difficulty              The difficulty level of the new question
+ * @param {string[]} possibleAnswers       The possible answers for the question
+ * @param {string} correctAnswer           The correct answer for the question (Should be one of the possible answers)
+ */
+router.post('/AddQuestion', (request: Request, response: Response) => {
+    try {
         const question = request.body.question;
         const categoryId = request.body.categoryId;
         const difficulty = request.body.difficulty;
+        const createdBy = request.body.userId;
+        const possibleAnswers = request.body.possibleAnswers;
+        const correctAnswer = request.body.correctAnswer;
+
         const newDocumentSpace = questionsGateway.getNewDocumentReference();
         const mappedQuestion = new QuestionModel(newDocumentSpace.id, question, categoryId, difficulty);
-        const possibleAnswers = request.body.possibleAnswers;
-
-        response.send(newDocumentSpace);
 
         if (newDocumentSpace && mappedQuestion) {
             mappedQuestion.setPossibleAnswers(possibleAnswers);
+            mappedQuestion.setCorrectAnswer(correctAnswer);
+            mappedQuestion.modifyCreated(createdBy);
 
             QuestionsGateway.setQuestion(newDocumentSpace, mappedQuestion)
                 .then(() => {
                     response.send(
-                        new JsonResponse(question)
+                        new JsonResponse(mappedQuestion._id)
                     );
                 });
         }
-    // } catch (e) {
-    //     response.send(e);
-    //
-    //     response.send(
-    //         new JsonResponse(e)
-    //     );
-    // }
+    } catch (e) {
+        response.send(
+            new JsonResponse(e)
+        );
+    }
 });
-
-// module.exports = router;

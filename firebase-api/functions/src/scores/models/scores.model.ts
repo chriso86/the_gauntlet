@@ -1,9 +1,12 @@
 import {IAuditable} from "../../global/interfaces/auditable.interface";
 
-export class CategoryModel implements IAuditable{
+export class ScoresModel implements IAuditable {
     _id: string;
-    name: string;
-    description: string;
+    quizId: string;
+    quizName: string;
+    userId: string;
+    totalScore: number;
+    numberOfQuestions: number;
     createdBy: string;
     createdOn: Date;
     updatedBy: string;
@@ -11,20 +14,26 @@ export class CategoryModel implements IAuditable{
 
     constructor(
         id: string,
-        name: string,
-        description: string,
-        createdBy: string = 'System',
+        quizId: string,
+        quizName: string,
+        userId: string,
+        totalScore: number,
+        numberOfQuestions: number,
         createdOn: Date = new Date(),
-        updatedBy: string = 'System',
+        createdBy: string = 'System',
         updatedOn: Date = new Date(),
+        updatedBy: string = ''
     ) {
         this._id = id;
-        this.name = name;
-        this.description = description;
-        this.createdBy = createdBy;
+        this.quizId = quizId;
+        this.quizName = quizName;
+        this.userId = userId;
+        this.totalScore = totalScore;
+        this.numberOfQuestions = numberOfQuestions;
         this.createdOn = createdOn;
-        this.updatedBy = updatedBy;
+        this.createdBy = createdBy;
         this.updatedOn = updatedOn;
+        this.updatedBy = updatedBy;
     }
 
     modifyCreated(createdBy?: string): void {
