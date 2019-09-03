@@ -6,6 +6,7 @@ import {
     WriteResult
 } from "@google-cloud/firestore";
 import {BaseGateway} from "../../global/gateways/base.gateway";
+import {parseJsonModel} from "../../global/helpers/json-parser";
 
 export class CategoriesGateway extends BaseGateway {
     constructor() {
@@ -51,7 +52,7 @@ export class CategoriesGateway extends BaseGateway {
     }
 
     // WRITE
-    static setCategory(documentReference: DocumentReference, category: CategoryModel): Promise<WriteResult> {
+    setCategory(documentReference: DocumentReference, category: CategoryModel): Promise<WriteResult> {
         if (!documentReference) {
             throw new Error('You can only add a category to an existing document reference');
         }
@@ -60,7 +61,9 @@ export class CategoriesGateway extends BaseGateway {
             throw new Error('There was no \'category\' object passed in to add to the database');
         }
 
+        const jsonifiedCategory = parseJsonModel(category);
+
         return documentReference
-            .set(category);
+            .set(jsonifiedCategory);
     }
 }

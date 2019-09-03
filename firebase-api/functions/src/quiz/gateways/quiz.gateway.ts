@@ -25,9 +25,10 @@ export class QuizGateway extends BaseGateway {
                 return new QuizModel(
                     quiz._id,
                     quiz.name,
+                    quiz.categoryIds,
+                    quiz.numberOfQuestions,
                     quiz.hostedBy,
                     quiz.hostedOn,
-                    quiz.categoryId,
                     quiz.participantIds,
                     quiz.closed,
                     quiz.createdOn,
@@ -39,7 +40,7 @@ export class QuizGateway extends BaseGateway {
     }
 
     // WRITE
-    static setQuiz(documentReference: DocumentReference, quiz: QuizModel): Promise<WriteResult> {
+    setQuiz(documentReference: DocumentReference, quiz: QuizModel): Promise<WriteResult> {
         if (!documentReference) {
             throw new Error('You can only add a quiz to an existing document reference');
         }

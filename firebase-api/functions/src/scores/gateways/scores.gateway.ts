@@ -14,11 +14,11 @@ export class ScoresGateway extends BaseGateway {
     }
 
     // READ
+    // TODO: KNOWN ISSUE - WITH STARTAT PAGING WHERE IT DOES NOT RETURN CORRECT RESULTS WITH ORDERBY
     getScoresForPlayer(userId: string, startItemNo: number = 1, pageSize: number = 10): Promise<ScoresModel[]> {
         return this._collection
             .where('userId', '==', userId)
             .orderBy('createdOn', 'desc')
-            .startAt(startItemNo)
             .limit(pageSize)
             .get()
             .then((snapshot: QuerySnapshot) => {
@@ -59,7 +59,7 @@ export class ScoresGateway extends BaseGateway {
     }
 
     // WRITE
-    static setScores(documentReference: DocumentReference, score: ScoresModel): Promise<WriteResult> {
+    setScores(documentReference: DocumentReference, score: ScoresModel): Promise<WriteResult> {
         if (!documentReference) {
             throw new Error('You can only add a score to an existing document reference');
         }

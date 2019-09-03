@@ -29,6 +29,7 @@ export class QuizModel implements IAuditable{
         updatedOn: Date = new Date(),
         updatedBy: string = 'System'
     ) {
+        this._id = id;
         this.name = name;
         this.categoryIds = categoryIds;
         this.hostedBy = hostedBy;

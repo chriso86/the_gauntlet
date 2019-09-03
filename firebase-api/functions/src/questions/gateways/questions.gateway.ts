@@ -9,6 +9,7 @@ import {
 import {DifficultyEnum} from "../enums/difficulty.enum";
 import {BaseGateway} from "../../global/gateways/base.gateway";
 import {parseJsonModel} from "../../global/helpers/json-parser";
+import {Response} from 'firebase-functions';
 
 export class QuestionsGateway extends BaseGateway {
     constructor() {
@@ -20,7 +21,7 @@ export class QuestionsGateway extends BaseGateway {
     // READ
     getQuestions(
         categoryIds: string[],
-        difficulty: DifficultyEnum,
+        difficulty: DifficultyEnum = DifficultyEnum.Easy,
         startItemNo: number = 1,
         pageSize: number = 10
     ): Promise<QuestionModel[]> {
@@ -30,10 +31,15 @@ export class QuestionsGateway extends BaseGateway {
             throw new Error('You cannot fetch questions without specifying at least one category ID');
         }
 
-        categoryIds.forEach(categoryId => {
+        if (Array.isArray(categoryIds)) {
+            categoryIds.forEach(categoryId => {
+                query = this._collection
+                    .where('categoryId', '==', categoryId);
+            });
+        } else {
             query = this._collection
-                .where('categoryId', '==', categoryId);
-        });
+                .where('categoryId', '==', categoryIds);
+        }
 
         return (query || this._collection)
             .where('difficulty', '==', difficulty)
@@ -94,7 +100,7 @@ export class QuestionsGateway extends BaseGateway {
             })
     }
 
-    getSpecificQuestion(id: string): Promise<QuestionModel> {
+    getSpecificQuestion(id: string, response: Response): Promise<QuestionModel> {
         return this._collection
             .where('_id', '==', id)
             .get()
@@ -122,7 +128,7 @@ export class QuestionsGateway extends BaseGateway {
     }
 
     // WRITE
-    static setQuestion(documentReference: DocumentReference, question: QuestionModel): Promise<WriteResult> {
+    setQuestion(documentReference: DocumentReference, question: QuestionModel): Promise<WriteResult> {
         if (!documentReference) {
             throw new Error('You can only add a question to an existing document reference');
         }

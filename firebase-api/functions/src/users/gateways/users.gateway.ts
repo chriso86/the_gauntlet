@@ -74,7 +74,7 @@ export class UsersGateway extends BaseGateway {
             });
     }
 
-    static setUser(documentReference: DocumentReference, user: UserModel): Promise<WriteResult> {
+    setUser(documentReference: DocumentReference, user: UserModel): Promise<WriteResult> {
         if (!documentReference) {
             throw new Error('You can only add a user to an existing document reference');
         }
