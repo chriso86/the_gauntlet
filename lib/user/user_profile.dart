@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'document_storage.dart';
+import '../storage/storage_repository.dart';
 
 class UserProfile extends InheritedWidget {
-  final documentStorage = new DocumentStorage();
+  final documentStorage = new StorageRepository();
 
   String playerName = 'Wanderer';
 

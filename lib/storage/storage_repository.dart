@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
-class DocumentStorage {
+class StorageRepository {
   String playerKey = 'Wanderer';
 
   Future<String> get _localPath async {

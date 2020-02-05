@@ -1,38 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:the_gauntlet/server_options.dart';
-import 'package:the_gauntlet/user_profile.dart';
-import 'connectivity_monitor.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:the_gauntlet/connection/connectivity_monitor_widget.dart';
+import 'package:the_gauntlet/server/server_options_widget.dart';
+import 'package:the_gauntlet/storage/storage_bloc.dart';
+import 'package:the_gauntlet/storage/storage_state.dart';
 
-class MainMenu extends StatefulWidget {
-  @override
-  _MainMenuState createState() => new _MainMenuState();
-}
-
-class _MainMenuState extends State<MainMenu> {
-  // State
-  bool _editingName = false;
-  String _playerName = '';
-
+class MainMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    TextEditingController _playerNameController = new TextEditingController();
-    _playerName = UserProfile.of(context).playerName;
-
     return Stack(children: <Widget>[
       // Main Menu Content
       Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.black,
             leading: Icon(Icons.person, size: 26.0),
-            title: Text(_playerName,
-                style: TextStyle(color: Colors.white, fontSize: 20.0)),
+            title: BlocBuilder<StorageBloc, StorageState>(
+              builder: (context, state) {
+                if (state is StorageLoadedName) {
+                  return Text(state.name,
+                      style: TextStyle(color: Colors.white, fontSize: 20.0));
+                } else {
+                  return Text('Wanderer',
+                      style: TextStyle(color: Colors.white, fontSize: 20.0));
+                }
+              },
+            ),
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.edit),
                 onPressed: () {
-                  setState(() {
-                    _editingName = true;
-                  });
+                  // TODO: IMPLEMENT
                 },
               )
             ],
@@ -92,7 +89,7 @@ class _MainMenuState extends State<MainMenu> {
       Container(
         alignment: Alignment.topCenter,
         child: new Visibility(
-          visible: _editingName,
+          visible: false, // TODO: IMPLEMENT
           child: Card(
             child: Padding(
                 padding: EdgeInsets.all(20.0),
@@ -106,7 +103,6 @@ class _MainMenuState extends State<MainMenu> {
                       style: TextStyle(fontSize: 26.0),
                     ),
                     TextFormField(
-                      controller: _playerNameController,
                       autofocus: true,
                       style: TextStyle(fontSize: 26.0),
                     ),
@@ -120,9 +116,7 @@ class _MainMenuState extends State<MainMenu> {
                           icon: Icon(Icons.close),
                           iconSize: 36.0,
                           onPressed: () {
-                            setState(() {
-                              _editingName = false;
-                            });
+                            // TODO: IMPLEMENT
                           },
                         ),
                         SizedBox(
@@ -132,12 +126,7 @@ class _MainMenuState extends State<MainMenu> {
                           icon: Icon(Icons.done),
                           iconSize: 36.0,
                           onPressed: () {
-                            setState(() {
-                              UserProfile.of(context).playerName =
-                                  _playerNameController.text;
-
-                              _editingName = false;
-                            });
+                            // TODO: IMPLEMENT
                           },
                         ),
                       ],
