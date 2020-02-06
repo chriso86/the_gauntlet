@@ -1,36 +1,37 @@
 import 'package:flutter/material.dart';
-
 import '../storage/storage_repository.dart';
 
-class UserProfile extends InheritedWidget {
-  final documentStorage = new StorageRepository();
+class UserProfileNotifier with ChangeNotifier {
+  StorageRepository storageRepository;
+  String _playerNameKey = 'PlayerName';
+  String _playerName = 'Wanderer';
+  bool _editingPlayerName = false;
 
-  String playerName = 'Wanderer';
+  String get playerName {
+    return _playerName;
+  }
+  bool get editingPlayerName {
+    return _editingPlayerName;
+  }
+  set editingPlayerName(bool isEditing) {
+    _editingPlayerName = isEditing;
 
-  UserProfile({Key key, @required Widget child})
-      : super(key: key, child: child);
-
-  static UserProfile of(BuildContext context) {
-    return context.inheritFromWidgetOfExactType(UserProfile);
+    notifyListeners();
   }
 
-  void setPlayerName(String name) {
-    playerName = name;
+  UserProfileNotifier() {
+    storageRepository = StorageRepository();
 
-    documentStorage.setPlayerName(name);
-
-    print('Player name set to $playerName');
-  }
-
-  String getPlayerName() {
-    documentStorage.getPlayerName()
-        .then((String name) {
-      playerName = name;
-
-      return playerName;
+    storageRepository.readKeyValue(_playerNameKey).then((name) {
+      _playerName = name;
     });
   }
 
-  @override
-  bool updateShouldNotify(UserProfile oldWidget) => true;
+  void setPlayerName(String playerName) async {
+    _playerName = playerName;
+
+    await storageRepository.writeKeyValue(_playerNameKey, playerName);
+
+    notifyListeners();
+  }
 }

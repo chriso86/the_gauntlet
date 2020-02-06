@@ -1,35 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:the_gauntlet/connection/connectivity_monitor_widget.dart';
 import 'package:the_gauntlet/server/server_options_widget.dart';
-import 'package:the_gauntlet/storage/storage_bloc.dart';
-import 'package:the_gauntlet/storage/storage_state.dart';
+import 'package:the_gauntlet/user/user_profile.dart';
 
 class MainMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    TextEditingController _playerNameController = new TextEditingController();
+    UserProfileNotifier userProfileNotifier =
+        Provider.of<UserProfileNotifier>(context);
+
     return Stack(children: <Widget>[
       // Main Menu Content
       Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.black,
             leading: Icon(Icons.person, size: 26.0),
-            title: BlocBuilder<StorageBloc, StorageState>(
-              builder: (context, state) {
-                if (state is StorageLoadedName) {
-                  return Text(state.name,
-                      style: TextStyle(color: Colors.white, fontSize: 20.0));
-                } else {
-                  return Text('Wanderer',
-                      style: TextStyle(color: Colors.white, fontSize: 20.0));
-                }
-              },
-            ),
+            title: Text(userProfileNotifier.playerName,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20.0,
+                )),
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.edit),
                 onPressed: () {
-                  // TODO: IMPLEMENT
+                  userProfileNotifier.editingPlayerName = true;
                 },
               )
             ],
@@ -63,10 +60,14 @@ class MainMenu extends StatelessWidget {
                           highlightColor: Colors.white10,
                           padding: EdgeInsets.symmetric(vertical: 30.0),
                           onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ServerOptions()));
+                            Navigator.of(context).push(
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => ServerOptions(),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  return ServerOptions();
+                                }
+                              )
+                            );
                           },
                           child: const Text('New Game',
                               style: TextStyle(
@@ -86,10 +87,11 @@ class MainMenu extends StatelessWidget {
                     ]))),
           )),
 
+      // Player Name Form
       Container(
         alignment: Alignment.topCenter,
         child: new Visibility(
-          visible: false, // TODO: IMPLEMENT
+          visible: userProfileNotifier.editingPlayerName,
           child: Card(
             child: Padding(
                 padding: EdgeInsets.all(20.0),
@@ -102,10 +104,19 @@ class MainMenu extends StatelessWidget {
                       'Enter your name:',
                       style: TextStyle(fontSize: 26.0),
                     ),
-                    TextFormField(
-                      autofocus: true,
-                      style: TextStyle(fontSize: 26.0),
-                    ),
+                    Consumer<UserProfileNotifier>(
+                        builder: (context, userProfile, _) {
+                      _playerNameController.text = userProfile.playerName;
+                      _playerNameController.selection =
+                          TextSelection.fromPosition(TextPosition(
+                              offset: userProfile.playerName.length));
+
+                      return TextFormField(
+                        controller: _playerNameController,
+                        autofocus: true,
+                        style: TextStyle(fontSize: 26.0),
+                      );
+                    }),
                     new SizedBox(
                       height: 30.0,
                     ),
@@ -116,7 +127,7 @@ class MainMenu extends StatelessWidget {
                           icon: Icon(Icons.close),
                           iconSize: 36.0,
                           onPressed: () {
-                            // TODO: IMPLEMENT
+                            userProfileNotifier.editingPlayerName = false;
                           },
                         ),
                         SizedBox(
@@ -126,7 +137,9 @@ class MainMenu extends StatelessWidget {
                           icon: Icon(Icons.done),
                           iconSize: 36.0,
                           onPressed: () {
-                            // TODO: IMPLEMENT
+                            userProfileNotifier
+                                .setPlayerName(_playerNameController.text);
+                            userProfileNotifier.editingPlayerName = false;
                           },
                         ),
                       ],
