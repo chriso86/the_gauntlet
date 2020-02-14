@@ -1,4 +1,4 @@
-import 'category.dart';
+import 'model/category_model.dart';
 import 'package:http/http.dart' as http;
 
 class Gateway {

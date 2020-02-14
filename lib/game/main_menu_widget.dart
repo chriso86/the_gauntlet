@@ -1,22 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:the_gauntlet/server_options.dart';
-import 'package:the_gauntlet/user_profile.dart';
-import 'connectivity_monitor.dart';
+import 'package:provider/provider.dart';
+import 'package:the_gauntlet/connection/connectivity_monitor_widget.dart';
+import 'package:the_gauntlet/server/server_options_widget.dart';
+import 'package:the_gauntlet/user/user_profile.dart';
 
-class MainMenu extends StatefulWidget {
-  @override
-  _MainMenuState createState() => new _MainMenuState();
-}
-
-class _MainMenuState extends State<MainMenu> {
-  // State
-  bool _editingName = false;
-  String _playerName = '';
-
+class MainMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TextEditingController _playerNameController = new TextEditingController();
-    _playerName = UserProfile.of(context).playerName;
+    UserProfileNotifier userProfileNotifier =
+        Provider.of<UserProfileNotifier>(context);
 
     return Stack(children: <Widget>[
       // Main Menu Content
@@ -24,15 +17,16 @@ class _MainMenuState extends State<MainMenu> {
           appBar: AppBar(
             backgroundColor: Colors.black,
             leading: Icon(Icons.person, size: 26.0),
-            title: Text(_playerName,
-                style: TextStyle(color: Colors.white, fontSize: 20.0)),
+            title: Text(userProfileNotifier.playerName,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20.0,
+                )),
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.edit),
                 onPressed: () {
-                  setState(() {
-                    _editingName = true;
-                  });
+                  userProfileNotifier.editingPlayerName = true;
                 },
               )
             ],
@@ -66,10 +60,14 @@ class _MainMenuState extends State<MainMenu> {
                           highlightColor: Colors.white10,
                           padding: EdgeInsets.symmetric(vertical: 30.0),
                           onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ServerOptions()));
+                            Navigator.of(context).push(
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => ServerOptions(),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  return ServerOptions();
+                                }
+                              )
+                            );
                           },
                           child: const Text('New Game',
                               style: TextStyle(
@@ -89,10 +87,11 @@ class _MainMenuState extends State<MainMenu> {
                     ]))),
           )),
 
+      // Player Name Form
       Container(
         alignment: Alignment.topCenter,
         child: new Visibility(
-          visible: _editingName,
+          visible: userProfileNotifier.editingPlayerName,
           child: Card(
             child: Padding(
                 padding: EdgeInsets.all(20.0),
@@ -105,11 +104,19 @@ class _MainMenuState extends State<MainMenu> {
                       'Enter your name:',
                       style: TextStyle(fontSize: 26.0),
                     ),
-                    TextFormField(
-                      controller: _playerNameController,
-                      autofocus: true,
-                      style: TextStyle(fontSize: 26.0),
-                    ),
+                    Consumer<UserProfileNotifier>(
+                        builder: (context, userProfile, _) {
+                      _playerNameController.text = userProfile.playerName;
+                      _playerNameController.selection =
+                          TextSelection.fromPosition(TextPosition(
+                              offset: userProfile.playerName.length));
+
+                      return TextFormField(
+                        controller: _playerNameController,
+                        autofocus: true,
+                        style: TextStyle(fontSize: 26.0),
+                      );
+                    }),
                     new SizedBox(
                       height: 30.0,
                     ),
@@ -120,9 +127,7 @@ class _MainMenuState extends State<MainMenu> {
                           icon: Icon(Icons.close),
                           iconSize: 36.0,
                           onPressed: () {
-                            setState(() {
-                              _editingName = false;
-                            });
+                            userProfileNotifier.editingPlayerName = false;
                           },
                         ),
                         SizedBox(
@@ -132,12 +137,9 @@ class _MainMenuState extends State<MainMenu> {
                           icon: Icon(Icons.done),
                           iconSize: 36.0,
                           onPressed: () {
-                            setState(() {
-                              UserProfile.of(context).playerName =
-                                  _playerNameController.text;
-
-                              _editingName = false;
-                            });
+                            userProfileNotifier
+                                .setPlayerName(_playerNameController.text);
+                            userProfileNotifier.editingPlayerName = false;
                           },
                         ),
                       ],

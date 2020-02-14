@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
-class DocumentStorage {
-  String playerKey = 'Wanderer';
-
+class StorageRepository {
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
 
@@ -66,13 +64,5 @@ class DocumentStorage {
     print(matchingValue);
 
     return matchingValue;
-  }
-
-  Future<File> setPlayerName(String name) async {
-    return await writeKeyValue(playerKey, name);
-  }
-
-  Future<String> getPlayerName() async {
-    return await readKeyValue(playerKey);
   }
 }

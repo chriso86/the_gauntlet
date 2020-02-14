@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:the_gauntlet/server_configuration.dart';
-import 'category.dart';
-import 'connectivity_monitor.dart';
-import 'difficuly_level.dart';
-import 'document_storage.dart';
-import 'gateway.dart';
-import 'loader.dart';
+import 'package:the_gauntlet/connection/connectivity_monitor_widget.dart';
+import 'package:the_gauntlet/server/model/server_configuration_model.dart';
+import 'model/category_model.dart';
+import 'model/difficuly_level_model.dart';
+import '../storage/storage_repository.dart';
+import 'server_repository.dart';
+import '../loader/loader_widget.dart';
 
 class ServerOptions extends StatefulWidget {
   @override
@@ -16,7 +16,7 @@ class ServerOptions extends StatefulWidget {
 class _ServerOptionsState extends State<ServerOptions> {
   // Persistent
   final gateway = new Gateway();
-  final documentStorage = new DocumentStorage();
+  final documentStorage = new StorageRepository();
 
   // Defaults
   static String _defaultDifficulty = 'Medium';

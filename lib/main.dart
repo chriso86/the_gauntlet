@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:the_gauntlet/user_profile.dart';
-import 'main_menu.dart';
+import 'package:provider/provider.dart';
+import 'package:the_gauntlet/game/main_menu_widget.dart';
+import 'package:the_gauntlet/user/user_profile.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(GauntletApp());
 
-class MyApp extends StatelessWidget {
+class GauntletApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      builder: (context, child) => new SafeArea(child: new UserProfile(child: child)),
-      title: 'Flutter Demo',
+      title: 'The Gauntlet',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
       ),
-      home: MainMenu()
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => UserProfileNotifier())
+        ],
+        child: MainMenu(),
+      ),
     );
   }
 }
